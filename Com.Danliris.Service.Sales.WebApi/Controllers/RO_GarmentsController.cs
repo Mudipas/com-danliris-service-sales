@@ -152,5 +152,30 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
                 return StatusCode(Common.INTERNAL_ERROR_STATUS_CODE, Result);
             }
         }
+
+        [HttpGet("RoWithComponent")]
+        public IActionResult RoWithComponent(int page = 1, int size = 25, string order = "{}", [Bind(Prefix = "Select[]")] List<string> select = null, string keyword = null, string filter = "{}")
+        {
+            try
+            {
+                ValidateUser();
+
+                var data = Facade.RoWithComponent(page, size, order, select, keyword, filter);
+
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, Common.OK_STATUS_CODE, Common.OK_MESSAGE)
+                    .Ok(data.ToList());
+                return Ok(Result);
+            }
+            catch (Exception e)
+            {
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, Common.INTERNAL_ERROR_STATUS_CODE, e.Message)
+                    .Fail();
+                return StatusCode(Common.INTERNAL_ERROR_STATUS_CODE, Result);
+            }
+        }
+
+
     }
 }

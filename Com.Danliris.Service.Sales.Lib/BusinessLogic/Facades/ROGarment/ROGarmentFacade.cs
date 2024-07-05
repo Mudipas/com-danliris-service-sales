@@ -169,6 +169,11 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.ROGarment
             return roGarmentLogic.Read(page, size, order, select, keyword, filter);
         }
 
+        public List<RO_ComponentAppsViewModel> RoWithComponent(int page, int size, string order, List<string> select, string keyword, string filter)
+        {
+            return roGarmentLogic.RoWithComponent(page, size, order, select, keyword, filter);
+        }
+
         public async Task<RO_Garment> ReadByIdAsync(int id)
         {
             RO_Garment read = await this.DbSet

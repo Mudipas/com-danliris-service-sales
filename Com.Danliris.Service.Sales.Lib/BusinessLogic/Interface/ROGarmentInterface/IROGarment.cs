@@ -13,5 +13,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface.ROGarmentInterf
         Task<int> PostRO(List<long> listId);
         Task<int> UnpostRO(long id);
         Task<int> RejectSample(int id, RO_GarmentViewModel viewModel);
+
+        List<RO_ComponentAppsViewModel> RoWithComponent(int page, int size, string order, List<string> select, string keyword, string filter);
     }
 }

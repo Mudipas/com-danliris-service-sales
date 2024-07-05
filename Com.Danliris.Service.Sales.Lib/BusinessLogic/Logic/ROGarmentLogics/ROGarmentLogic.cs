@@ -14,6 +14,7 @@ using Com.Moonlay.Models;
 using Com.Danliris.Service.Sales.Lib.Models.CostCalculationGarments;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Com.Danliris.Service.Sales.Lib.ViewModels.GarmentROViewModels;
 
 namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.ROGarmentLogics
 {
@@ -228,5 +229,48 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.ROGarmentLogics
             //Create Log History
             logHistoryLogic.Create("PENJUALAN", "Un Post RO Garment - " + CC.RO_Number);
         }
+
+        // koneki efrata appps
+        internal List<RO_ComponentAppsViewModel> RoWithComponent(int page, int size, string order, List<string> select, string keyword, string filter) //internal agar bisa akses class ROGarmentLogic
+        {
+            IQueryable<RO_Garment> Query = DbSet.Include(x => x.RO_Garment_SizeBreakdowns).ThenInclude(x => x.RO_Garment_SizeBreakdown_Details); //sumber data dbcontext
+
+
+            Dictionary<string, object> FilterDictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(filter);
+            Query = QueryHelper<RO_Garment>.Filter(Query, FilterDictionary);
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+                Query = Query.Where(sc => sc.CostCalculationGarment.Article.Contains(keyword) || sc.CostCalculationGarment.RO_Number.Contains(keyword) || sc.CostCalculationGarment.UnitName.Contains(keyword));
+
+            Dictionary<string, string> OrderDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(order);
+            Query = QueryHelper<RO_Garment>.Order(Query, OrderDictionary);
+
+            Pageable<RO_Garment> pageable = new Pageable<RO_Garment>(Query, page - 1, size);
+            List<RO_Garment> data = pageable.Data.ToList<RO_Garment>();
+            int totalData = pageable.TotalCount;
+
+            var newQuery = data.Join(DbContext.CostCalculationGarments, ro => ro.CostCalculationGarmentId, ccg => ccg.Id, (ro, ccg) =>
+         new RO_Garment
+         {
+             Id = ro.Id,
+             Code = ro.Code,
+             CostCalculationGarment = new CostCalculationGarment()
+             {
+                 RO_Number = ccg.RO_Number,
+                 Article = ccg.Article,
+             },
+             Total = ro.Total,
+             IsPosted = ro.IsPosted,
+             LastModifiedUtc = ro.LastModifiedUtc,
+             IsRejected = ro.IsRejected,
+             RO_Garment_SizeBreakdowns = ro.RO_Garment_SizeBreakdowns
+         });
+
+            List<RO_ComponentAppsViewModel> result = newQuery.Select(x => new RO_ComponentAppsViewModel(x)).ToList();
+
+            return result;
+        }
+
+
     }
 }
